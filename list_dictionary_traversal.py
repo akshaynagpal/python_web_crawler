@@ -22,3 +22,16 @@ students = [lloyd,alice,tyler]
 for student in students:
     for key in student:
         print student[key]
+
+def average(numbers):
+    total = sum(numbers)
+    total= float(total)
+    avg = total/len(numbers)
+    return avg
+    
+def get_average(student):
+    homework = average(student["homework"])
+    quizzes = average(student["quizzes"])
+    tests  = average(student["tests"])
+    final = (0.10 * homework) + (0.30 * quizzes) + (0.60 * tests)
+    return final
