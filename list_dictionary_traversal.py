@@ -1,3 +1,4 @@
+students=[lloyd,alice,tyler]
 lloyd = {
     "name": "Lloyd",
     "homework": [90.0, 97.0, 75.0, 92.0],
@@ -43,3 +44,15 @@ def get_letter_grade(score):
         return "F"
 
 get_letter_grade(get_average(lloyd))
+
+
+def get_class_average(students):
+    results=[]
+    for student in students:
+        results.append(get_average(student))
+    
+    return average(results)
+
+gca = get_class_average(students)
+print gca
+print get_letter_grade(gca)
