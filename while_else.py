@@ -1,5 +1,9 @@
 /*
-Something completely different about Python is the while/else construction. while/else is similar to if/else, but there is a difference: the else block will execute anytime the loop condition is evaluated to False. This means that it will execute if the loop is never entered or if the loop exits normally. If the loop exits as the result of a break, the else will not be executed.
+**While / else loop .**
+Something completely different about Python is the while/else construction. while/else is similar to if/else, but there is a 
+difference: the else block will execute anytime the loop condition is evaluated to False. This means that it will execute if
+the loop is never entered or if the loop exits normally. If the loop exits as the result of a break, the else will not be 
+executed.
 */
 
 import random
