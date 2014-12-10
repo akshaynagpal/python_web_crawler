@@ -1,3 +1,5 @@
+# reverse a string in python without using reversed() or [::-1]
+
 def reverse(test):
     n = len(test)
     x=""
