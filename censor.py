@@ -1,3 +1,6 @@
+#censor takes two strings, text and word, as input. 
+#It returns the text with the word you chose replaced with asterisks.
+
 def censor(text,word):
     result = ""
     count = 0
