@@ -2,13 +2,15 @@
 
 def remove_duplicates(input_list):
     result = []
+    k = -1
     for i in input_list:
-        flag = 0
-        for j in range(0,i-1,1):
+        k += 1
+        flag = False
+        for j in range(0,k,+1):
             if(input_list[j] == i):
-                flag = 1
-        if(flag==1):
-            continue
-        else:
+                flag = True
+        if(flag==False):
             result.append(i)
+        else:
+            continue
     return result
