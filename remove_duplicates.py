@@ -14,3 +14,10 @@ def remove_duplicates(input_list):
         else:
             continue
     return result
+
+"""
+ALTERNATE SOLUTION USING SETS
+
+def remove_duplicates(input_list):
+    return list(set(input_list))
+"""
