@@ -56,5 +56,35 @@ def std_deviation(arr,mean):
     
     return round(std_dev,1)
 
-print std_deviation(arr,mean)
+std_dev = std_deviation(arr,mean)
+print std_dev
+
+"""
+95% confidence interval
+------------------------
+Lower limit = M - Z.95 M
+
+Upper limit = M + Z.95 M
+
+where,
+
+M = mean
+Z.95 = 1.96
+
+M = standard error of mean = / (n^0.5)
+
+where  = std. deviation
+"""
+
+def calc_confidence_interval(arr,mean,std_dev):
+    std_error = float(std_dev/(len(arr)**0.5))
     
+    lower = 0.0
+    upper = 0.0
+    lower = mean - (1.96 * std_error)
+    upper = mean + (1.96 * std_error)
+    print str(lower) + " " + str(upper)
+    return 1
+
+calc_confidence_interval(arr,mean,std_dev)
+
