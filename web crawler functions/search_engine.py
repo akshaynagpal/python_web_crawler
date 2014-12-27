@@ -1,4 +1,5 @@
 import urllib2
+from bs4 import BeautifulSoup
 
 cache = {
    'http://udacity.com/cs101x/urank/index.html': """<html>
@@ -134,7 +135,7 @@ def crawl_web(seed): # returns index, graph of outlinks
             crawled.append(page)
     return index, graph
 
-def compute_ranks(graph):  #page rank algorithm simplified implementation
+def compute_ranks(graph):  #Stanford's page rank algorithm's simplified implementation
     d = 0.8  # damping factor
     num_loops = 10
 
@@ -155,10 +156,9 @@ def compute_ranks(graph):  #page rank algorithm simplified implementation
         ranks = newranks
     return ranks
 
-#def get_page(url):
+# def get_page(url):
 #    if url in cache:
 #        return cache[url]
-
 #    else:
 #        return None
 
@@ -174,21 +174,31 @@ def get_next_target(page):
     start_quote = page.find('"', start_link)
     end_quote = page.find('"', start_quote + 1)
     url = page[start_quote + 1:end_quote]
-    if url.find("http") or url.find("www") or url.find("."):
+    if url.find('http') or url.find('www') or url.find('.') or url.find('https'):
         return url, end_quote
     else:
         return None, 0
 
+# def get_all_links(page):
+#     links = []
+#     while True:
+#         url, endpos = get_next_target(page)
+#         if url:
+#             links.append(url)
+#             page = page[endpos:]
+#         else:
+#             break
+#     return links
+
 def get_all_links(page):
     links = []
-    while True:
-        url, endpos = get_next_target(page)
-        if url:
-            links.append(url)
-            page = page[endpos:]
-        else:
-            break
+    soup = BeautifulSoup(page,"lxml")
+    for link in soup.find_all('a'):
+        x = link.get('href')
+        if x.find('http')==0:
+            links.append(x)
     return links
+
 
 
 def union(a, b):
@@ -214,18 +224,17 @@ def lookup(index, keyword):
         return None
 
 
-
-
 print "Web Crawler"
-user_input = raw_input("(All websites wont work. Still under maintenance)\nEnter website to crawl (for eg. http://google.com) :")
+#user_input = raw_input("(All websites wont work. Still under maintenance)\nEnter website to crawl (for eg. http://google.com) :")
 
-index , graph = crawl_web(user_input) 
+index , graph = crawl_web("http://www.google.co.in") 
 
 ranks_returned = compute_ranks(graph)
 for i in ranks_returned:
     print i + " " + str(ranks_returned[i])
 print "website entered by user crawled"
-
+for keyword in index:
+    print keyword[0]
 search_input = raw_input("enter search keyword:")
 
 lookup_result = lookup(index,search_input)
