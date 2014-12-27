@@ -1,6 +1,153 @@
 import urllib2
 from bs4 import BeautifulSoup
 
+def crawl_web(seed): # returns index, graph of outlinks
+    print "inside crawl_web"
+    tocrawl = [seed]
+    crawled = []
+    graph = {}   # <url>:[list of pages it links to]
+    index = {}
+    while tocrawl:
+        page = tocrawl.pop()
+        if page not in crawled:
+            content = get_page(page)
+            c = BeautifulSoup(content)
+            static_content = c.get_text()
+            add_page_to_index(index, page, static_content)
+            outlinks = get_all_links(content)
+            graph[page] = outlinks
+            union(tocrawl, outlinks)
+            crawled.append(page)
+    return index, graph
+
+def compute_ranks(graph):  #Stanford's page rank algorithm's simplified implementation
+    print "inside compute_ranks"
+    d = 0.8  # damping factor
+    num_loops = 10
+
+    ranks = {}
+    npages = len(graph)
+    for page in graph:
+        ranks[page] = 1.0 / npages
+
+    for i in range(0,num_loops):
+        newranks = {}
+        for page in graph:
+            newrank = 1-d / npages
+            #update by summing in the inlink ranks
+            for node in graph:
+                if page in graph[node]:
+                    newrank += d*(ranks[node]/len(graph[node]))
+            newranks[page] = newrank
+        ranks = newranks
+    return ranks
+
+# def get_page(url):
+#    if url in cache:
+#        return cache[url]
+#    else:
+#        return None
+
+def get_page(page):
+    print "inside get_page"
+    response = urllib2.urlopen(page)
+    html = response.read()
+    return html
+
+##def get_next_target(page):
+##    start_link = page.find('<a href=')
+##    if start_link == -1:
+##        return None, 0
+##    start_quote = page.find('"', start_link)
+##    end_quote = page.find('"', start_quote + 1)
+##    url = page[start_quote + 1:end_quote]
+##    if url.find('http') or url.find('www') or url.find('.') or url.find('https'):
+##        return url, end_quote
+##    else:
+##        return None, 0
+
+# def get_all_links(page):
+#     links = []
+#     while True:
+#         url, endpos = get_next_target(page)
+#         if url:
+#             links.append(url)
+#             page = page[endpos:]
+#         else:
+#             break
+#     return links
+
+def get_all_links(page):
+    print "inside get_all_links"
+    links = []
+    soup = BeautifulSoup(page,"lxml")
+    for link in soup.find_all('a'):
+        x = link.get('href')
+        if x is not None:
+            if x.find('http')==0:
+                links.append(x)
+    return links
+
+
+
+def union(a, b):
+    print "inside union"
+    for e in b:
+        if e not in a:
+            a.append(e)
+
+def add_page_to_index(index, url, content):
+    print "inside add_page_to_index"
+    words = content.split()
+    for word in words:
+        add_to_index(index, word, url)
+
+def add_to_index(index, keyword, url):
+    print "inside add_to_index"
+    if keyword in index:
+        index[keyword].append(url)  # TO DO : check update instead of append
+    else:
+        index[keyword] = [url]
+
+def lookup(index, keyword):
+    print "inside lookup"
+    if keyword in index:
+        return index[keyword]
+    else:
+        return None
+
+
+print "Web Crawler"
+user_input = raw_input("(All websites wont work. Still under maintenance)\nEnter website to crawl (for eg. http://google.com) :")
+
+index , graph = crawl_web(user_input)
+
+ranks_returned = compute_ranks(graph)
+for i in ranks_returned:
+    print i + " " + str(ranks_returned[i])
+print "website entered by user crawled"
+keyword_list = index.keys()
+for keyword in keyword_list:
+    print keyword
+    
+search_input = raw_input("enter search keyword:")
+
+lookup_result = lookup(index,search_input)
+
+if lookup_result == None:
+    print "Keyword not found"
+else:
+
+    for i in lookup_result:
+        print i + " (Relevance : "+ str(ranks_returned[i]) +" )"
+
+raw_input("press any key to exit")
+
+
+
+
+# End of Code
+
 cache = {
    'http://udacity.com/cs101x/urank/index.html': """<html>
 <body>
@@ -13,8 +160,8 @@ Here are my favorite recipies:
 <li> <a href="http://udacity.com/cs101x/urank/kathleen.html">Kathleen's Hummus Recipe</a>
 </ul>
 
-For more expert opinions, check out the 
-<a href="http://udacity.com/cs101x/urank/nickel.html">Nickel Chef</a> 
+For more expert opinions, check out the
+<a href="http://udacity.com/cs101x/urank/nickel.html">Nickel Chef</a>
 and <a href="http://udacity.com/cs101x/urank/zinc.html">Zinc Chef</a>.
 </body>
 </html>
@@ -24,16 +171,16 @@ and <a href="http://udacity.com/cs101x/urank/zinc.html">Zinc Chef</a>.
 
 
 
-""", 
+""",
    'http://udacity.com/cs101x/urank/zinc.html': """<html>
 <body>
 <h1>The Zinc Chef</h1>
 <p>
-I learned everything I know from 
+I learned everything I know from
 <a href="http://udacity.com/cs101x/urank/nickel.html">the Nickel Chef</a>.
 </p>
 <p>
-For great hummus, try 
+For great hummus, try
 <a href="http://udacity.com/cs101x/urank/arsenic.html">this recipe</a>.
 
 </body>
@@ -44,7 +191,7 @@ For great hummus, try
 
 
 
-""", 
+""",
    'http://udacity.com/cs101x/urank/nickel.html': """<html>
 <body>
 <h1>The Nickel Chef</h1>
@@ -62,7 +209,7 @@ best Hummus recipe!
 
 
 
-""", 
+""",
    'http://udacity.com/cs101x/urank/kathleen.html': """<html>
 <body>
 <h1>
@@ -81,7 +228,7 @@ Kathleen's Hummus Recipe
 </body>
 </html>
 
-""", 
+""",
    'http://udacity.com/cs101x/urank/arsenic.html': """<html>
 <body>
 <h1>
@@ -97,7 +244,7 @@ The Arsenic Chef's World Famous Hummus Recipe
 </body>
 </html>
 
-""", 
+""",
    'http://udacity.com/cs101x/urank/hummus.html': """<html>
 <body>
 <h1>
@@ -116,138 +263,8 @@ Hummus Recipe
 
 
 
-""", 
+""",
 }
-
-def crawl_web(seed): # returns index, graph of outlinks
-    tocrawl = [seed]
-    crawled = []
-    graph = {}   # <url>:[list of pages it links to]
-    index = {} 
-    while tocrawl: 
-        page = tocrawl.pop()
-        if page not in crawled:
-            content = get_page(page)
-            add_page_to_index(index, page, content)
-            outlinks = get_all_links(content)      
-            graph[page] = outlinks
-            union(tocrawl, outlinks)
-            crawled.append(page)
-    return index, graph
-
-def compute_ranks(graph):  #Stanford's page rank algorithm's simplified implementation
-    d = 0.8  # damping factor
-    num_loops = 10
-
-    ranks = {}
-    npages = len(graph)
-    for page in graph:
-        ranks[page] = 1.0 / npages
-
-    for i in range(0,num_loops):
-        newranks = {}
-        for page in graph:
-            newrank = 1-d / npages
-            #update by summing in the inlink ranks
-            for node in graph:
-                if page in graph[node]:
-                    newrank += d*(ranks[node]/len(graph[node])) 
-            newranks[page] = newrank
-        ranks = newranks
-    return ranks
-
-# def get_page(url):
-#    if url in cache:
-#        return cache[url]
-#    else:
-#        return None
-
-def get_page(page):
-    response = urllib2.urlopen(page)
-    html = response.read()
-    return html
-    
-def get_next_target(page):
-    start_link = page.find('<a href=')
-    if start_link == -1: 
-        return None, 0
-    start_quote = page.find('"', start_link)
-    end_quote = page.find('"', start_quote + 1)
-    url = page[start_quote + 1:end_quote]
-    if url.find('http') or url.find('www') or url.find('.') or url.find('https'):
-        return url, end_quote
-    else:
-        return None, 0
-
-# def get_all_links(page):
-#     links = []
-#     while True:
-#         url, endpos = get_next_target(page)
-#         if url:
-#             links.append(url)
-#             page = page[endpos:]
-#         else:
-#             break
-#     return links
-
-def get_all_links(page):
-    links = []
-    soup = BeautifulSoup(page,"lxml")
-    for link in soup.find_all('a'):
-        x = link.get('href')
-        if x.find('http')==0:
-            links.append(x)
-    return links
-
-
-
-def union(a, b):
-    for e in b:
-        if e not in a:
-            a.append(e)
-
-def add_page_to_index(index, url, content):
-    words = content.split()
-    for word in words:
-        add_to_index(index, word, url)
-        
-def add_to_index(index, keyword, url):
-    if keyword in index:
-        index[keyword].append(url)  # TO DO : check update instead of append
-    else:
-        index[keyword] = [url]
-
-def lookup(index, keyword):
-    if keyword in index:
-        return index[keyword]
-    else:
-        return None
-
-
-print "Web Crawler"
-#user_input = raw_input("(All websites wont work. Still under maintenance)\nEnter website to crawl (for eg. http://google.com) :")
-
-index , graph = crawl_web("http://www.google.co.in") 
-
-ranks_returned = compute_ranks(graph)
-for i in ranks_returned:
-    print i + " " + str(ranks_returned[i])
-print "website entered by user crawled"
-for keyword in index:
-    print keyword[0]
-search_input = raw_input("enter search keyword:")
-
-lookup_result = lookup(index,search_input)
-
-if lookup_result == None:
-    print "Keyword not found"
-else:
-    
-    for i in lookup_result:
-        print i + " (Relevance : "+ str(ranks_returned[i]) +" )"
-
-raw_input("press any key to exit")
-
 #if 'http://udacity.com/cs101x/urank/index.html' in graph:
 #   print graph['http://udacity.com/cs101x/urank/index.html']
 #>>> ['http://udacity.com/cs101x/urank/hummus.html',
